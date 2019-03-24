@@ -6,6 +6,14 @@
 #include <QFile>
 #include <QRegularExpression>
 #include <QDebug>
+#include <QPair>
+
+enum class MESSAGE_TYPE
+{
+    PRIVMSG,
+    WHISPER,
+    SYSTEM
+};
 
 struct TwitchIrcConnectionData
 {
@@ -64,17 +72,47 @@ struct TwitchIrcConnectionData
         return TwitchIrcConnectionData{ "", "" };
     }
 
-    static QString extractMessage( const QString &line )
+    static QPair<QString,MESSAGE_TYPE> extractMessage( const QString &line, const QString &nick )
     {
         QRegularExpression reg{ R"(^.*?PRIVMSG #.*? :)",
                                 QRegularExpression::DotMatchesEverythingOption };
 
         QString message = line;
         message.remove( reg );
-        message.remove( "\r\n" );
 
-        qDebug() << "[MESSAGE]" << message;
-        return message;
+        // could net extract PRIVMSG, mybe a WHISPER?
+        if( message.size() == line.size() )
+        {
+            QRegularExpression reg{ R"(^.*?WHISPER )" + nick + R"(.*? :)",
+                                    QRegularExpression::DotMatchesEverythingOption };
+
+            message.remove( reg );
+
+            if( message.size() == line.size() )
+            {
+                message.remove( "\r\n" );
+
+                qDebug() << "[SYSTEM]" << message;
+
+                return QPair<QString,MESSAGE_TYPE>{ message, MESSAGE_TYPE::SYSTEM };
+            }
+            else // is WHISPER
+            {
+                message.remove( "\r\n" );
+
+                qDebug() << "[WHISPER-MESSAGE]" << message;
+
+                return QPair<QString,MESSAGE_TYPE>{ message, MESSAGE_TYPE::WHISPER };
+            }
+        }
+        else // is PRIVMSG
+        {
+            message.remove( "\r\n" );
+
+            qDebug() << "[MESSAGE]" << message;
+
+            return QPair<QString,MESSAGE_TYPE>{ message, MESSAGE_TYPE::PRIVMSG };
+        }
     }
 
     static QString extractName( const QString &line )

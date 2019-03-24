@@ -76,6 +76,9 @@ bool TwitchIrcChat::connectToChannel( const QString &channel, const TwitchIrcCon
     // join after RPL_WELCOME (Numeric 001)
     if( RPL_WELCOME_success )
     {
+        // save current users nickname
+        this->currentUsersNick = lowerNick;
+
         // Anweisung an den IRC Server, badges mitzusenden (twitch format)
         this->send( "CAP REQ :twitch.tv/membership\r\nCAP REQ :twitch.tv/tags\r\nCAP REQ :twitch.tv/commands\r\n");
 
@@ -216,6 +219,11 @@ bool TwitchIrcChat::successfullyJoined()
     }
 
     return false;
+}
+
+QString TwitchIrcChat::getCurrentUsersNick() const
+{
+    return this->currentUsersNick;
 }
 
 bool TwitchIrcChat::isJoinedCurrentChannel() const

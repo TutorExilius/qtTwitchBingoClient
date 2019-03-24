@@ -32,6 +32,7 @@ public:
 
     bool isJoinedCurrentChannel() const;
 
+    QString getCurrentUsersNick() const;
 
 signals:
     void twitchChannelConnection( bool successfullyConnected );
@@ -48,10 +49,12 @@ private:
     bool successfullyJoined();
 
     QTcpSocket *socket;
+
     QString currentChannel;
     QString connectedHost;
     quint16 connectedPort;
     bool joinedCurrentChannel;
+    QString currentUsersNick;
 
     QTimer timer;
 
